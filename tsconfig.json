@@ -12,7 +12,9 @@
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "node"    ],
+      "node",
+      "webgl2"
+    ],
     "paths": {
       "@/*": [
         "src/*"
