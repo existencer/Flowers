@@ -1,6 +1,15 @@
 <template>
   <div>
     <canvas id="canvas" width="1280" height="720"></canvas>
+    <div class="status">
+      <p>Frame --</p>
+      <p>Position</p>
+      <p class="sub">x: {{player.position[0].toFixed(3)}}</p>
+      <p class="sub">y: {{player.position[1].toFixed(3)}}</p>
+      <p class="sub">z: {{player.position[2].toFixed(3)}}</p>
+      <p>Lspeed {{player.speed.toFixed(3)}}</p>
+      <p>Rspeed {{player.rotateSpeed.toFixed(3)}}</p>
+    </div>
   </div>
 </template>
 
@@ -76,6 +85,11 @@ interface ShaderProgramInfo {
 }
 
 @Component({
+  data() {
+    return {
+      player
+    }
+  },
   mounted() {
     const canvas = this.$el.querySelector('#canvas') as HTMLCanvasElement
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
@@ -220,3 +234,23 @@ interface ShaderProgramInfo {
 })
 export default class Screen extends Vue {}
 </script>
+
+<style lang="stylus" scoped>
+.status
+  position fixed
+  width 110px
+  left 20px
+  top 114px
+  background #00000080
+  padding 10px
+  border-radius 4px
+  border solid 1px #000000A0
+  color #fff
+  p
+    font-size 14px
+    margin 0.4em
+    text-align left
+  .sub
+    margin 0 0.8em
+    font-size 12px
+</style>
