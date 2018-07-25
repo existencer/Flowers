@@ -16,7 +16,7 @@ out highp float vColor;
 
 void main() {
   highp float diameter = uRadius * 2.0;
-  highp vec3 dis = uCenterPosition + vec3(uRadius, 0.0, uRadius) - aInstanceOffset;
+  highp vec3 dis = vec3(uCenterPosition.x, 0.0, uCenterPosition.z) + vec3(uRadius, 0.0, uRadius) - aInstanceOffset;
   highp vec3 dn = floor(dis / diameter);
   highp vec4 modelPos = uModelMatrix * vec4(aVertexPosition, 0.0, 1.0);
   highp vec4 flagPos = vec4(dn * diameter + aInstanceOffset + modelPos.xyz, 1.0);

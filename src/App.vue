@@ -8,6 +8,18 @@
   </div>
 </template>
 
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator'
+
+@Component
+export default class App extends Vue {
+  private created(): void {
+    this.$store.dispatch('loadResource')
+  }
+}
+</script>
+
+
 <style lang="stylus">
 *
   margin 0

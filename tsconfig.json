@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
+    "strictFunctionTypes": false,
     "sourceMap": true,
     "baseUrl": ".",
     "types": [

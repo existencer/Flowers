@@ -14,9 +14,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Provide } from 'vue-property-decorator'
 import { vec3, mat4 } from 'gl-matrix'
+import { State } from 'vuex-class'
 import { initShaderProgram } from '@/lib/webgl2/shader'
+import { loadCubemap } from '@/lib/webgl2/cubemap'
 import Player from '@/lib/game/player'
 import Ctrl from '@/lib/game/ctrl'
 
@@ -75,6 +77,49 @@ const groundVertex = [
   -500, 500,
   -500, -500
 ]
+const skyboxVertices = [
+  -1.0,  1.0, -1.0,
+  -1.0, -1.0, -1.0,
+   1.0, -1.0, -1.0,
+   1.0, -1.0, -1.0,
+   1.0,  1.0, -1.0,
+  -1.0,  1.0, -1.0,
+
+  -1.0, -1.0,  1.0,
+  -1.0, -1.0, -1.0,
+  -1.0,  1.0, -1.0,
+  -1.0,  1.0, -1.0,
+  -1.0,  1.0,  1.0,
+  -1.0, -1.0,  1.0,
+
+   1.0, -1.0, -1.0,
+   1.0, -1.0,  1.0,
+   1.0,  1.0,  1.0,
+   1.0,  1.0,  1.0,
+   1.0,  1.0, -1.0,
+   1.0, -1.0, -1.0,
+
+  -1.0, -1.0,  1.0,
+  -1.0,  1.0,  1.0,
+   1.0,  1.0,  1.0,
+   1.0,  1.0,  1.0,
+   1.0, -1.0,  1.0,
+  -1.0, -1.0,  1.0,
+
+  -1.0,  1.0, -1.0,
+   1.0,  1.0, -1.0,
+   1.0,  1.0,  1.0,
+   1.0,  1.0,  1.0,
+  -1.0,  1.0,  1.0,
+  -1.0,  1.0, -1.0,
+
+  -1.0, -1.0, -1.0,
+  -1.0, -1.0,  1.0,
+   1.0, -1.0, -1.0,
+   1.0, -1.0, -1.0,
+  -1.0, -1.0,  1.0,
+   1.0, -1.0,  1.0
+]
 
 const player = new Player([0, 3.6, 3], {x: 10, y: 180})
 
@@ -84,13 +129,14 @@ interface ShaderProgramInfo {
   uLocation?: Array<WebGLUniformLocation | null>
 }
 
-@Component({
-  data() {
-    return {
-      player
-    }
-  },
-  mounted() {
+@Component
+export default class Screen extends Vue {
+  @Provide() private player: Player = player
+  @Provide() private raf: number | undefined
+
+  @State('assets') assets?: HTMLImageElement[]
+
+  private mounted(): void {
     const canvas = this.$el.querySelector('#canvas') as HTMLCanvasElement
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext
     if (!gl) {
@@ -98,11 +144,13 @@ interface ShaderProgramInfo {
       return
     }
 
-
     const groundSPI: ShaderProgramInfo = {
       program: initShaderProgram(gl, groundVsSource, groundFsSource) as WebGLProgram
     }
-    groundSPI.uLocation = [gl.getUniformLocation(groundSPI.program, 'uPlayerPosition')]
+    groundSPI.uLocation = [
+      gl.getUniformLocation(groundSPI.program, 'uPlayerPosition'),
+      gl.getUniformLocation(groundSPI.program, 'uSkyBoxTexture')
+    ]
     gl.uniformBlockBinding(groundSPI.program, gl.getUniformBlockIndex(groundSPI.program, 'uboMatrix'), 1)
 
     const grassSPI: ShaderProgramInfo = {
@@ -133,6 +181,10 @@ interface ShaderProgramInfo {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(groundVertex), gl.STATIC_DRAW)
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
     gl.enableVertexAttribArray(0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(skyboxVertices), gl.STATIC_DRAW)
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0)
+    gl.enableVertexAttribArray(1)
     gl.bindVertexArray(null)
 
     const grassVAO = gl.createVertexArray()
@@ -165,8 +217,10 @@ interface ShaderProgramInfo {
     gl.bindBufferRange(gl.UNIFORM_BUFFER, 1, uboMatrices, 0, 128)
     gl.bindBuffer(gl.UNIFORM_BUFFER, null)
 
+    const cubeSkyTexture = loadCubemap(gl, this.assets!)
+
     let lastTime: number
-    function render(time: number): void {
+    const render = (time: number): void => {
       time *= 0.001
       if (!lastTime) {
         lastTime = time
@@ -182,7 +236,7 @@ interface ShaderProgramInfo {
       const fieldOfView = 45 * Math.PI / 180
       const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
       const zNear = 0.1
-      const zFar = 100.0
+      const zFar = 120.0
       const projectionMat4 = mat4.create()
       mat4.perspective(projectionMat4, fieldOfView, aspect, zNear, zFar)
 
@@ -194,16 +248,19 @@ interface ShaderProgramInfo {
       gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight)
       gl.clearColor(0.0, 0.0, 0.0, 1.0)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-      gl.enable(gl.DEPTH_TEST)
       gl.enable(gl.CULL_FACE)
       gl.cullFace(gl.BACK)
 
+      // gl.disable(gl.DEPTH_TEST)
       gl.useProgram(groundSPI.program)
       gl.uniform3fv(groundSPI.uLocation![0], player.position)
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeSkyTexture)
+      gl.uniform1i(groundSPI.uLocation![1], 0)
       gl.bindVertexArray(groundVAO)
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+      gl.drawArrays(gl.TRIANGLES, 0, 36)
       gl.bindVertexArray(null)
 
+      gl.enable(gl.DEPTH_TEST)
       gl.useProgram(grassSPI.program)
       gl.uniformMatrix4fv(grassSPI.uLocation![0], false, invRotateYMat4)
       gl.uniform1f(grassSPI.uLocation![1], radius)
@@ -224,15 +281,20 @@ interface ShaderProgramInfo {
       gl.drawElements(gl.LINE_STRIP, 24, gl.UNSIGNED_SHORT, 0)
       gl.bindVertexArray(null)
 
-      requestAnimationFrame(render)
+      this.raf = requestAnimationFrame(render)
     }
 
     const ctrl = new Ctrl(canvas, player)
     ctrl.start()
-    requestAnimationFrame(render)
+    this.raf = requestAnimationFrame(render)
   }
-})
-export default class Screen extends Vue {}
+
+  private beforeDestroy(): void {
+    if (this.raf) {
+      cancelAnimationFrame(this.raf)
+    }
+  }
+}
 </script>
 
 <style lang="stylus" scoped>
