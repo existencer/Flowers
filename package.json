@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "gl-matrix": "^2.7.1",
     "vue": "^2.5.16",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^7.0.0",
@@ -15,10 +16,12 @@
     "vuex": "^3.0.1"
   },
   "devDependencies": {
+    "@types/gl-matrix": "^2.4.0",
     "@types/webgl2": "0.0.4",
     "@vue/cli-plugin-babel": "^3.0.0-rc.5",
     "@vue/cli-plugin-typescript": "^3.0.0-rc.5",
     "@vue/cli-service": "^3.0.0-rc.5",
+    "raw-loader": "^0.5.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.2",
     "vue-template-compiler": "^2.5.16"
