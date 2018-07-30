@@ -30,9 +30,9 @@ import centerVsSource from '@/glsl/center.vs'
 import centerFsSource from '@/glsl/center.fs'
 import centerLineFsSource from '@/glsl/center.line.fs'
 
-const grassCount = 400000
-const grassDensity = 15
-const grassSlope = 1 / 20
+const grassCount = 40000
+const grassDensity = 100
+const grassSlope = 1 / 30
 const grassPrecision = 4
 const grassOffset: number[] = []
 const radius = Math.sqrt(grassCount / grassDensity)
@@ -134,7 +134,7 @@ export default class Screen extends Vue {
   @Provide() private player: Player = player
   @Provide() private raf: number | undefined
 
-  @State('assets') assets?: HTMLImageElement[]
+  @State('assets') private assets?: HTMLImageElement[]
 
   private mounted(): void {
     const canvas = this.$el.querySelector('#canvas') as HTMLCanvasElement
