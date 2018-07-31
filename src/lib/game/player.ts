@@ -32,7 +32,7 @@ export default class Player {
     if (this.movement[0] === 1) {
       this.speed = this.speed + weight * playerSpeedup / 60
     } else if (this.movement[0] === -1) {
-      this.speed = Math.max(-0.1, this.speed - weight * playerSpeedup / 60)
+      this.speed = Math.max(-1, this.speed - weight * playerSpeedup / 60)
     }
     this.rotate.y += this.rotateSpeed * weight * maxRotateSpeed / 60
     this.distance = 3 * (1 + this.speed)

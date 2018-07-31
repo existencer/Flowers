@@ -18,7 +18,7 @@ void main() {
   //   aVertexPosition.y + uPlayerPosition.z,
   //   1.0
   // );
-  highp vec3 flagPos = aSkyBoxPosition * 50.0 + vec3(uPlayerPosition.x, 0.0, uPlayerPosition.z);
+  highp vec3 flagPos = aSkyBoxPosition * 90.0 + vec3(uPlayerPosition.x, 0.0, uPlayerPosition.z);
   gl_Position = uProjectionMatrix * uViewMatrix * vec4(flagPos, 1.0);
   vTexCoords = aSkyBoxPosition;
 }

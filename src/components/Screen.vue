@@ -7,9 +7,13 @@
       <p class="sub">x: {{player.position[0].toFixed(3)}}</p>
       <p class="sub">y: {{player.position[1].toFixed(3)}}</p>
       <p class="sub">z: {{player.position[2].toFixed(3)}}</p>
+      <p>Rotate</p>
+      <p class="sub">x: {{player.rotate.x.toFixed(3)}}</p>
+      <p class="sub">y: {{player.rotate.y.toFixed(3)}}</p>
       <p>Lspeed {{player.speed.toFixed(3)}}</p>
       <p>Rspeed {{player.rotateSpeed.toFixed(3)}}</p>
     </div>
+    <div @click="render">Render</div>
   </div>
 </template>
 
@@ -29,11 +33,12 @@ import grassFsSource from '@/glsl/grass.fs'
 import centerVsSource from '@/glsl/center.vs'
 import centerFsSource from '@/glsl/center.fs'
 import centerLineFsSource from '@/glsl/center.line.fs'
+import Island from '@/lib/webgl2/island'
 
-const grassCount = 40000
-const grassDensity = 100
-const grassSlope = 1 / 30
-const grassPrecision = 4
+const grassCount = 5000000
+const grassDensity = 400
+const grassSlope = 1 / 40
+const grassPrecision = 2
 const grassOffset: number[] = []
 const radius = Math.sqrt(grassCount / grassDensity)
 for (let i = 0; i < grassCount; i++) {
@@ -121,7 +126,7 @@ const skyboxVertices = [
    1.0, -1.0,  1.0
 ]
 
-const player = new Player([0, 3.6, 3], {x: 10, y: 180})
+const player = new Player([42.914, 11.812, -35.407], {x: 11.3, y: -29.483})
 
 interface ShaderProgramInfo {
   program: WebGLProgram,
@@ -135,6 +140,8 @@ export default class Screen extends Vue {
   @Provide() private raf: number | undefined
 
   @State('assets') private assets?: HTMLImageElement[]
+
+  @Provide() private render = () => {return}
 
   private mounted(): void {
     const canvas = this.$el.querySelector('#canvas') as HTMLCanvasElement
@@ -160,8 +167,10 @@ export default class Screen extends Vue {
       gl.getUniformLocation(grassSPI.program, 'uModelMatrix'),
       gl.getUniformLocation(grassSPI.program, 'uRadius'),
       gl.getUniformLocation(grassSPI.program, 'uCenterPosition'),
+      gl.getUniformLocation(grassSPI.program, 'uDepthTexture'),
     ]
     gl.uniformBlockBinding(grassSPI.program, gl.getUniformBlockIndex(grassSPI.program, 'uboMatrix'), 1)
+    gl.uniformBlockBinding(grassSPI.program, gl.getUniformBlockIndex(grassSPI.program, 'uboIsland'), 2)
 
     const centerSPI: ShaderProgramInfo = {
       program: initShaderProgram(gl, centerVsSource, centerFsSource) as WebGLProgram
@@ -215,9 +224,23 @@ export default class Screen extends Vue {
     gl.bufferData(gl.UNIFORM_BUFFER, 128, gl.STATIC_DRAW)
     gl.bindBuffer(gl.UNIFORM_BUFFER, null)
     gl.bindBufferRange(gl.UNIFORM_BUFFER, 1, uboMatrices, 0, 128)
-    gl.bindBuffer(gl.UNIFORM_BUFFER, null)
 
-    const cubeSkyTexture = loadCubemap(gl, this.assets!)
+    const uboIsland = gl.createBuffer()
+    gl.bindBuffer(gl.UNIFORM_BUFFER, uboIsland)
+    gl.bufferData(gl.UNIFORM_BUFFER, 16, gl.STATIC_DRAW)
+    gl.bindBuffer(gl.UNIFORM_BUFFER, null)
+    gl.bindBufferRange(gl.UNIFORM_BUFFER, 2, uboIsland, 0, 16)
+
+    const cubeSkyTexture = loadCubemap(gl, this.assets!, gl.TEXTURE0)
+
+    const island = new Island(gl, 1)
+    island.bindUniformBlock('uboMatrix', 1)
+    island.bindUniformBlock('uboIsland', 2)
+    const islandDepth = new Image()
+    islandDepth.src = require('@/assets/island.png')
+    islandDepth.onload = () => {
+      island.bindDepthTexture(islandDepth)
+    }
 
     let lastTime: number
     const render = (time: number): void => {
@@ -236,7 +259,7 @@ export default class Screen extends Vue {
       const fieldOfView = 45 * Math.PI / 180
       const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight
       const zNear = 0.1
-      const zFar = 120.0
+      const zFar = 500.0
       const projectionMat4 = mat4.create()
       mat4.perspective(projectionMat4, fieldOfView, aspect, zNear, zFar)
 
@@ -245,48 +268,61 @@ export default class Screen extends Vue {
       gl.bufferSubData(gl.UNIFORM_BUFFER, 64, projectionMat4)
       gl.bindBuffer(gl.UNIFORM_BUFFER, null)
 
+      gl.bindBuffer(gl.UNIFORM_BUFFER, uboIsland)
+      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, new Int32Array([512]))
+      gl.bufferSubData(gl.UNIFORM_BUFFER, 4, new Float32Array([16.0]))
+      gl.bufferSubData(gl.UNIFORM_BUFFER, 8, new Float32Array([4.0]))
+      gl.bindBuffer(gl.UNIFORM_BUFFER, null)
+
       gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight)
       gl.clearColor(0.0, 0.0, 0.0, 1.0)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
       gl.enable(gl.CULL_FACE)
       gl.cullFace(gl.BACK)
 
-      // gl.disable(gl.DEPTH_TEST)
+      gl.enable(gl.DEPTH_TEST)
+
+      island.draw(gl)
+
+      gl.useProgram(centerSPI.program)
+      gl.uniformMatrix4fv(centerSPI.uLocation![0], false, centerMat4)
+      gl.bindVertexArray(centerVAO)
+      // gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0)
+      gl.bindVertexArray(null)
+
+      gl.useProgram(centerLineSPI.program)
+      gl.uniformMatrix4fv(centerLineSPI.uLocation![0], false, centerMat4)
+      gl.bindVertexArray(centerVAO)
+      // gl.drawElements(gl.LINE_STRIP, 24, gl.UNSIGNED_SHORT, 0)
+      gl.bindVertexArray(null)
+
+      gl.useProgram(grassSPI.program)
+      gl.uniformMatrix4fv(grassSPI.uLocation![0], false, invRotateYMat4)
+      gl.uniform1f(grassSPI.uLocation![1], radius)
+      gl.uniform3fv(grassSPI.uLocation![2], player.position)
+      gl.uniform1i(grassSPI.uLocation![3], 1)
+      gl.bindVertexArray(grassVAO)
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, grassPointsCount, grassCount)
+      gl.bindVertexArray(null)
+
       gl.useProgram(groundSPI.program)
       gl.uniform3fv(groundSPI.uLocation![0], player.position)
+      gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeSkyTexture)
       gl.uniform1i(groundSPI.uLocation![1], 0)
       gl.bindVertexArray(groundVAO)
       gl.drawArrays(gl.TRIANGLES, 0, 36)
       gl.bindVertexArray(null)
 
-      gl.enable(gl.DEPTH_TEST)
-      gl.useProgram(grassSPI.program)
-      gl.uniformMatrix4fv(grassSPI.uLocation![0], false, invRotateYMat4)
-      gl.uniform1f(grassSPI.uLocation![1], radius)
-      gl.uniform3fv(grassSPI.uLocation![2], player.position)
-      gl.bindVertexArray(grassVAO)
-      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, grassPointsCount, grassCount)
-      gl.bindVertexArray(null)
-
-      gl.useProgram(centerSPI.program)
-      gl.uniformMatrix4fv(centerSPI.uLocation![0], false, centerMat4)
-      gl.bindVertexArray(centerVAO)
-      gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0)
-      gl.bindVertexArray(null)
-
-      gl.useProgram(centerLineSPI.program)
-      gl.uniformMatrix4fv(centerLineSPI.uLocation![0], false, centerMat4)
-      gl.bindVertexArray(centerVAO)
-      gl.drawElements(gl.LINE_STRIP, 24, gl.UNSIGNED_SHORT, 0)
-      gl.bindVertexArray(null)
-
-      this.raf = requestAnimationFrame(render)
+      // this.raf = requestAnimationFrame(render)
     }
 
     const ctrl = new Ctrl(canvas, player)
     ctrl.start()
     this.raf = requestAnimationFrame(render)
+    this.render = () => {
+      requestAnimationFrame(render)
+    }
   }
 
   private beforeDestroy(): void {

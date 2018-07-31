@@ -1,7 +1,7 @@
 import { initShaderProgram } from '@/lib/webgl2/shader'
 
 import islandVsSource from '@/glsl/island.vs'
-import islandFsSource from '@/glsl/center.fs'
+import islandFsSource from '@/glsl/island.fs'
 
 const facings = [
   0.0, 0.0,
@@ -32,9 +32,9 @@ export default class Island {
     this.uDepthTextureLoc = gl.getUniformLocation(this.program, 'uDepthTexture')
 
     this.depthTexture = gl.createTexture()
-    gl.activeTexture(texturePos)
+    gl.activeTexture(this.texturePos + gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.depthTexture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, null)
     gl.generateMipmap(gl.TEXTURE_2D)
     gl.bindTexture(gl.TEXTURE_2D, null)
 
@@ -50,12 +50,13 @@ export default class Island {
   public draw(gl: WebGL2RenderingContext) {
     gl.enable(gl.DEPTH_TEST)
     gl.useProgram(this.program)
-    gl.activeTexture(this.texturePos)
+    gl.activeTexture(this.texturePos + gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.depthTexture)
     gl.uniform1i(this.uDepthTextureLoc, this.texturePos)
-    gl.uniform1i(this.uPrecisionLoc, 100)
+    gl.uniform1i(this.uPrecisionLoc, 512)
     gl.bindVertexArray(this.vao)
-    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 10000)
+    // gl.drawArraysInstanced(gl.LINES, 0, 6, 512 * 512)
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 512 * 512)
     gl.bindVertexArray(null)
   }
 
@@ -66,9 +67,9 @@ export default class Island {
 
   public bindDepthTexture(resource: ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement) {
     const gl = this.gl
-    gl.activeTexture(this.texturePos)
+    gl.activeTexture(this.texturePos + gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.depthTexture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, resource)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, resource)
     gl.generateMipmap(gl.TEXTURE_2D)
     gl.bindTexture(gl.TEXTURE_2D, null)
   }
