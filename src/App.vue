@@ -2,7 +2,8 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
-      <router-link to="/stage">Stage</router-link>
+      <router-link to="/stage">Stage</router-link> |
+      <router-link to="/gear">Gear</router-link>
     </div>
     <router-view/>
   </div>
@@ -14,7 +15,6 @@ import { Component, Vue } from 'vue-property-decorator'
 @Component
 export default class App extends Vue {}
 </script>
-
 
 <style lang="stylus">
 *
@@ -28,6 +28,8 @@ export default class App extends Vue {}
 
 #nav
   padding 20px
+  position relative
+  z-index 100
   a
     font-weight bold
     color #2c3e50

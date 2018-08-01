@@ -4,7 +4,7 @@ function loadShader(gl: WebGL2RenderingContext, type: number, source: string): W
   gl.compileShader(shader)
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader))
+    console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader))
     gl.deleteShader(shader)
     return null
   }
@@ -22,7 +22,7 @@ export function initShaderProgram(gl: WebGL2RenderingContext, vsSource: string, 
   gl.linkProgram(shaderProgram)
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram))
+    console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram))
     return null
   }
 
