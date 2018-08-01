@@ -12,11 +12,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 
 @Component
-export default class App extends Vue {
-  private created(): void {
-    this.$store.dispatch('loadResource')
-  }
-}
+export default class App extends Vue {}
 </script>
 
 

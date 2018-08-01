@@ -6,19 +6,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Provide } from 'vue-property-decorator'
 import Screen from '@/components/Screen.vue'
 
 @Component({
-  data() {
-    return {
-      title: 'State'
-    }
-  },
   components: {
     Screen
   }
 })
-export default class Stage extends Vue {}
+export default class Stage extends Vue {
+  @Provide() private title: string = 'State'
+}
 </script>
 

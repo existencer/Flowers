@@ -21,7 +21,7 @@ export default new Vuex.Store({
 
   },
   actions: {
-    loadResource({ state }): void {
+    loadResource({ state }): Promise<void> {
       const promiseList: Array<Promise<undefined>> = []
       for (const url of resources) {
         const img = new Image()
@@ -31,7 +31,7 @@ export default new Vuex.Store({
         }))
         state.assets.push(img)
       }
-      Promise.all(promiseList).then(() => {
+      return Promise.all(promiseList).then(() => {
         state.complete = true
       })
     }

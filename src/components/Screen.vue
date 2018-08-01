@@ -22,7 +22,7 @@ import { Component, Vue, Provide } from 'vue-property-decorator'
 import { vec3, mat4 } from 'gl-matrix'
 import { State } from 'vuex-class'
 import { initShaderProgram } from '@/lib/webgl2/shader'
-import { loadCubemap } from '@/lib/webgl2/cubemap'
+import CubeMap from '@/lib/webgl2/cubemap'
 import Player from '@/lib/game/player'
 import Ctrl from '@/lib/game/ctrl'
 
@@ -231,7 +231,10 @@ export default class Screen extends Vue {
     gl.bindBuffer(gl.UNIFORM_BUFFER, null)
     gl.bindBufferRange(gl.UNIFORM_BUFFER, 2, uboIsland, 0, 16)
 
-    const cubeSkyTexture = loadCubemap(gl, this.assets!, gl.TEXTURE0)
+    const cubeSky = new CubeMap(gl, 512, gl.TEXTURE0)
+    this.$store.dispatch('loadResource').then(() => {
+      cubeSky.updateTexture(this.assets!)
+    })
 
     const island = new Island(gl, 1)
     island.bindUniformBlock('uboMatrix', 1)
@@ -308,7 +311,7 @@ export default class Screen extends Vue {
       gl.useProgram(groundSPI.program)
       gl.uniform3fv(groundSPI.uLocation![0], player.position)
       gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeSkyTexture)
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeSky.texture)
       gl.uniform1i(groundSPI.uLocation![1], 0)
       gl.bindVertexArray(groundVAO)
       gl.drawArrays(gl.TRIANGLES, 0, 36)
