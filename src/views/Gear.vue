@@ -32,12 +32,12 @@ export default class Gear extends Vue {
     const gl = canvas.getContext('webgl', { alpha: false }) as WebGLRenderingContext
     this.gl = gl
 
-    const gear1 = new GearEntity(gl, [0, 200, 0], 200)
+    const gear1 = new GearEntity(gl, [-30, 200, 0], 200)
     gear1.setRotateSpeed(10)
     gear1.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
     gear1.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
 
-    const gear2 = new GearEntity(gl, [198, -108, 0], 200)
+    const gear2 = new GearEntity(gl, [168, -108, 0], 200)
     gear2.setRotateSpeed(-10)
     gear2.setRotateOffset(2.5)
     gear2.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
@@ -49,7 +49,7 @@ export default class Gear extends Vue {
       gl.canvas.width = gl.canvas.clientWidth
       gl.canvas.height = gl.canvas.clientHeight
       gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight)
-      gl.clearColor(1.0, 1.0, 1.0, 1.0)
+      gl.clearColor(0.05, 0.1, 0.1, 1.0)
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       const viewMat4 = mat4.create()
