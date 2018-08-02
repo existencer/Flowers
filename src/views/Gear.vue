@@ -20,11 +20,18 @@ export default class Gear extends Vue {
     const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
     this.gl = gl
 
-    const gear1 = new GearEntity(gl, [0, 0, 0], 200)
+    const gear1 = new GearEntity(gl, [0, 200, 0], 200)
     gear1.bindUniformBlock('uboCamera', 0)
-    gear1.setRotateSpeed(50)
+    gear1.setRotateSpeed(10)
     gear1.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
     gear1.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
+
+    const gear2 = new GearEntity(gl, [198, -108, 0], 200)
+    gear2.bindUniformBlock('uboCamera', 0)
+    gear2.setRotateSpeed(-10)
+    gear2.setRotateOffset(2.5)
+    gear2.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
+    gear2.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
 
     const uboCamera = gl.createBuffer()
     gl.bindBuffer(gl.UNIFORM_BUFFER, uboCamera)
@@ -56,8 +63,10 @@ export default class Gear extends Vue {
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
       gear1.update(time)
+      gear2.update(time)
 
       gear1.draw()
+      gear2.draw()
 
       this.raf = requestAnimationFrame(render)
     }

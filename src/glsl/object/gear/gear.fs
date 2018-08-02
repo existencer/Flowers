@@ -16,7 +16,8 @@ void main() {
   if (alpha < 0.1)
     discard;
   vec4 UVinfo = texture(uUVTexture, vTexCoord) * 2.0 - 1.0;
-  vec3 normal = normalize((uModelMatrix * UVinfo).xyz);
+  mat4 rotateMatrix = mat4(mat3(uModelMatrix));
+  vec3 normal = normalize((rotateMatrix * UVinfo).xyz);
   float power = max(dot(normal, lightDir), 0.0);
-  color = vec4(vec3(0.76) * (1.0 - power) + vec3(1.0) * power, alpha);
+  color = vec4(vec3(0.8) + vec3(1.0) * power * 0.2, alpha);
 }

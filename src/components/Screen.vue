@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="screen">
     <canvas id="canvas" width="1280" height="720"></canvas>
     <div class="status">
       <p>Frame --</p>
@@ -337,6 +337,8 @@ export default class Screen extends Vue {
 </script>
 
 <style lang="stylus" scoped>
+.screen
+  overflow hidden
 .status
   position fixed
   width 110px

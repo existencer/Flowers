@@ -23,6 +23,7 @@ export default class GearEntity extends Entity {
   private position = vec3.create()
   private rotateZ = 0
   private rotateSpeed = 6
+  private rotateOffset = 0
   private modelMatrix = mat4.create()
 
   constructor(gl: WebGL2RenderingContext, position?: [number, number, number], radius?: number) {
@@ -89,8 +90,12 @@ export default class GearEntity extends Entity {
     this.rotateSpeed = speed
   }
 
+  public setRotateOffset(offset: number) {
+    this.rotateOffset = offset
+  }
+
   public update(time: number) {
-    this.rotateZ = time * this.rotateSpeed / 1000
+    this.rotateZ = time * this.rotateSpeed / 1000 + this.rotateOffset
 
     const mat = mat4.create()
     mat4.translate(mat, mat, this.position)
