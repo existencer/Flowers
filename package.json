@@ -18,13 +18,15 @@
   },
   "devDependencies": {
     "@types/gl-matrix": "^2.4.0",
+    "@types/typescript": "^2.0.0",
     "@types/webgl2": "0.0.4",
-    "@vue/cli-plugin-babel": "^3.0.0-rc.5",
-    "@vue/cli-plugin-typescript": "^3.0.0-rc.5",
-    "@vue/cli-service": "^3.0.0-rc.5",
+    "@vue/cli-plugin-babel": "^3.0.0-rc.10",
+    "@vue/cli-plugin-typescript": "^3.0.0-rc.10",
+    "@vue/cli-service": "^3.0.0-rc.10",
     "raw-loader": "^0.5.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.2",
+    "typescript": "^3.0.1",
     "vue-template-compiler": "^2.5.16"
   }
 }
