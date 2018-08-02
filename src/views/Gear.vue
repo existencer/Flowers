@@ -1,6 +1,10 @@
 <template>
   <div id="stage-gear">
-    <canvas id="stage-gear-canvas"></canvas>
+    <canvas id="stage-gear-canvas" :style="{
+      'width': `${dPR * 100}%`,
+      'height': `${dPR * 100}%`,
+      'transform': `scale(${1 / dPR})`
+    }"></canvas>
   </div>
 </template>
 
@@ -13,10 +17,17 @@ import Camera from '@/lib/common/camera'
 @Component
 export default class Gear extends Vue {
   @Provide() private title: string = 'Gear'
+  @Provide() private dPR = 1
   @Provide() private raf: number | undefined
   @Provide() private gl: WebGLRenderingContext | null = null
 
+  private created(): void {
+    this.dPR = window.devicePixelRatio
+  }
+
   private mounted(): void {
+    const viewReviseK = this.dPR * 2
+
     const canvas = this.$el.querySelector('#stage-gear-canvas') as HTMLCanvasElement
     const gl = canvas.getContext('webgl', { alpha: false }) as WebGLRenderingContext
     this.gl = gl
@@ -45,8 +56,8 @@ export default class Gear extends Vue {
       const projectionMat4 = mat4.create()
       mat4.lookAt(viewMat4, [0, 0, 5], [0, 0, 0], [0, 1, 0])
       mat4.ortho(projectionMat4,
-        -gl.canvas.clientWidth / 2, gl.canvas.clientWidth / 2,
-        -gl.canvas.clientHeight / 2, gl.canvas.clientHeight / 2,
+        -gl.canvas.clientWidth / viewReviseK, gl.canvas.clientWidth / viewReviseK,
+        -gl.canvas.clientHeight / viewReviseK, gl.canvas.clientHeight / viewReviseK,
         0.1, 10)
 
       camera.setMat4(viewMat4, projectionMat4)
@@ -81,6 +92,5 @@ export default class Gear extends Vue {
   width 100%
   height 100%
 #stage-gear-canvas
-  width 100%
-  height 100%
+  transform-origin 0 0
 </style>
