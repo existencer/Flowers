@@ -19,6 +19,7 @@ export default class GearEntity extends Entity {
   private uModelMatLoc: WebGLUniformLocation | null
   private uViewMatLoc: WebGLUniformLocation | null
   private uProjMatLoc: WebGLUniformLocation | null
+  private uIsLightOnLoc: WebGLUniformLocation | null
   private uTextureLoc: WebGLUniformLocation | null
   private uUVTextureLoc: WebGLUniformLocation | null
 
@@ -46,6 +47,9 @@ export default class GearEntity extends Entity {
     this.uModelMatLoc = gl.getUniformLocation(this.program, 'uModelMatrix')
     this.uViewMatLoc = gl.getUniformLocation(this.program, 'uViewMatrix')
     this.uProjMatLoc = gl.getUniformLocation(this.program, 'uProjectionMatrix')
+
+    this.uIsLightOnLoc = gl.getUniformLocation(this.program, 'uIsLightOn')
+
     this.uTextureLoc = gl.getUniformLocation(this.program, 'uTexture')
     this.uUVTextureLoc = gl.getUniformLocation(this.program, 'uUVTexture')
 
@@ -109,12 +113,13 @@ export default class GearEntity extends Entity {
     this.modelMatrix = mat
   }
 
-  public draw(camera: Camera): void {
+  public draw(camera: Camera, lightOn?: boolean): void {
     const gl = this.gl
     gl.useProgram(this.program)
 
     gl.uniformMatrix4fv(this.uModelMatLoc, false, this.modelMatrix)
     camera.toUniform(this.uViewMatLoc, this.uProjMatLoc)
+    gl.uniform1i(this.uIsLightOnLoc, lightOn ? 1 : 0)
     gl.uniform1i(this.uTextureLoc, 1)
     gl.uniform1i(this.uUVTextureLoc, 2)
 

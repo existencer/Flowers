@@ -5,6 +5,8 @@
       'height': `${dPR * 100}%`,
       'transform': `scale(${1 / dPR})`
     }"></canvas>
+    <div class="black" @click="isLightOn = false">BLACK</div>
+    <div class="white" @click="isLightOn = true">WHITE</div>
   </div>
 </template>
 
@@ -17,6 +19,7 @@ import Camera from '@/lib/common/camera'
 @Component
 export default class Gear extends Vue {
   @Provide() private title: string = 'Gear'
+  @Provide() private isLightOn: boolean = true
   @Provide() private dPR = 1
   @Provide() private raf: number | undefined
   @Provide() private gl: WebGLRenderingContext | null = null
@@ -49,8 +52,11 @@ export default class Gear extends Vue {
       gl.canvas.width = gl.canvas.clientWidth
       gl.canvas.height = gl.canvas.clientHeight
       gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight)
-      // gl.clearColor(0.05, 0.1, 0.1, 1.0)
-      gl.clearColor(1.0, 1.0, 1.0, 1.0)
+      if (this.isLightOn) {
+        gl.clearColor(1.0, 1.0, 1.0, 1.0)
+      } else {
+        gl.clearColor(0.05, 0.1, 0.1, 1.0)
+      }
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       const viewMat4 = mat4.create()
@@ -69,8 +75,8 @@ export default class Gear extends Vue {
       gear1.update(time)
       gear2.update(time)
 
-      gear1.draw(camera)
-      gear2.draw(camera)
+      gear1.draw(camera, this.isLightOn)
+      gear2.draw(camera, this.isLightOn)
 
       this.raf = requestAnimationFrame(render)
     }
@@ -94,4 +100,18 @@ export default class Gear extends Vue {
   height 100%
 #stage-gear-canvas
   transform-origin 0 0
+.black
+  position fixed
+  top 50%
+  left 50%
+  transform translate3d(-124px, 170px, 0)
+  color #0d1a1a
+  cursor default
+.white
+  position fixed
+  top 50%
+  left 50%
+  transform translate3d(-124px, 96px, 0)
+  color #fff
+  cursor default
 </style>
