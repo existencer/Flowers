@@ -8,36 +8,31 @@
 import { Component , Vue, Provide } from 'vue-property-decorator'
 import { mat4 } from 'gl-matrix'
 import GearEntity from '@/lib/entity/gear'
+import Camera from '@/lib/common/camera'
 
 @Component
 export default class Gear extends Vue {
   @Provide() private title: string = 'Gear'
   @Provide() private raf: number | undefined
-  @Provide() private gl: WebGL2RenderingContext | null = null
+  @Provide() private gl: WebGLRenderingContext | null = null
 
   private mounted(): void {
     const canvas = this.$el.querySelector('#stage-gear-canvas') as HTMLCanvasElement
-    const gl = canvas.getContext('webgl2', { alpha: false }) as WebGL2RenderingContext
+    const gl = canvas.getContext('webgl', { alpha: false }) as WebGLRenderingContext
     this.gl = gl
 
     const gear1 = new GearEntity(gl, [0, 200, 0], 200)
-    gear1.bindUniformBlock('uboCamera', 0)
     gear1.setRotateSpeed(10)
     gear1.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
     gear1.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
 
     const gear2 = new GearEntity(gl, [198, -108, 0], 200)
-    gear2.bindUniformBlock('uboCamera', 0)
     gear2.setRotateSpeed(-10)
     gear2.setRotateOffset(2.5)
     gear2.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
     gear2.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
 
-    const uboCamera = gl.createBuffer()
-    gl.bindBuffer(gl.UNIFORM_BUFFER, uboCamera)
-    gl.bufferData(gl.UNIFORM_BUFFER, 128, gl.STATIC_DRAW)
-    gl.bindBuffer(gl.UNIFORM_BUFFER, null)
-    gl.bindBufferRange(gl.UNIFORM_BUFFER, 0, uboCamera, 0, 128)
+    const camera = new Camera(gl)
 
     const render = (time: number) => {
       gl.canvas.width = gl.canvas.clientWidth
@@ -54,10 +49,7 @@ export default class Gear extends Vue {
         -gl.canvas.clientHeight / 2, gl.canvas.clientHeight / 2,
         0.1, 10)
 
-      gl.bindBuffer(gl.UNIFORM_BUFFER, uboCamera)
-      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, viewMat4)
-      gl.bufferSubData(gl.UNIFORM_BUFFER, 64, projectionMat4)
-      gl.bindBuffer(gl.UNIFORM_BUFFER, null)
+      camera.setMat4(viewMat4, projectionMat4)
 
       gl.enable(gl.BLEND)
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -65,8 +57,8 @@ export default class Gear extends Vue {
       gear1.update(time)
       gear2.update(time)
 
-      gear1.draw()
-      gear2.draw()
+      gear1.draw(camera)
+      gear2.draw(camera)
 
       this.raf = requestAnimationFrame(render)
     }

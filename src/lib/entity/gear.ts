@@ -1,6 +1,8 @@
 import gearVsSource from '@/glsl/object/gear/gear.vs'
 import gearFsSource from '@/glsl/object/gear/gear.fs'
 import { vec3, mat4 } from 'gl-matrix'
+import Entity from '@/lib/common/entity'
+import Camera from '@/lib/common/camera'
 
 const degree = Math.PI / 180
 const squareVertex = [
@@ -9,15 +11,18 @@ const squareVertex = [
   -1.0, -1.0,
   1.0, -1.0
 ]
-import Entity from '@/lib/common/entity'
 
 export default class GearEntity extends Entity {
-  private vao: WebGLVertexArrayObject | null
+  private vertexBuffer: WebGLBuffer | null
   private UVTexture: WebGLTexture | null
   private GHTexture: WebGLTexture | null
-  private uModelMatrixLoc: WebGLUniformLocation | null
+  private uModelMatLoc: WebGLUniformLocation | null
+  private uViewMatLoc: WebGLUniformLocation | null
+  private uProjMatLoc: WebGLUniformLocation | null
   private uTextureLoc: WebGLUniformLocation | null
   private uUVTextureLoc: WebGLUniformLocation | null
+
+  private aVertexPosLoc: number
 
   private radius = 100
   private position = vec3.create()
@@ -26,7 +31,7 @@ export default class GearEntity extends Entity {
   private rotateOffset = 0
   private modelMatrix = mat4.create()
 
-  constructor(gl: WebGL2RenderingContext, position?: [number, number, number], radius?: number) {
+  constructor(gl: WebGLRenderingContext, position?: [number, number, number], radius?: number) {
     super(gl, gearVsSource, gearFsSource)
 
     if (position) {
@@ -36,18 +41,18 @@ export default class GearEntity extends Entity {
       this.radius = radius
     }
 
-    this.uModelMatrixLoc = gl.getUniformLocation(this.program, 'uModelMatrix')
+    this.aVertexPosLoc = gl.getAttribLocation(this.program, 'aVertexPos')
+
+    this.uModelMatLoc = gl.getUniformLocation(this.program, 'uModelMatrix')
+    this.uViewMatLoc = gl.getUniformLocation(this.program, 'uViewMatrix')
+    this.uProjMatLoc = gl.getUniformLocation(this.program, 'uProjectionMatrix')
     this.uTextureLoc = gl.getUniformLocation(this.program, 'uTexture')
     this.uUVTextureLoc = gl.getUniformLocation(this.program, 'uUVTexture')
 
-    const vao = gl.createVertexArray()
-    this.vao = vao
-    gl.bindVertexArray(vao)
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    this.vertexBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squareVertex), gl.STREAM_DRAW)
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
-    gl.enableVertexAttribArray(0)
-    gl.bindVertexArray(null)
+    gl.bindBuffer(gl.ARRAY_BUFFER, null)
 
     this.UVTexture = gl.createTexture()
     this.GHTexture = gl.createTexture()
@@ -67,7 +72,7 @@ export default class GearEntity extends Entity {
     UVImage.onload = () => {
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, this.UVTexture)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, UVImage)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, UVImage)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       gl.generateMipmap(gl.TEXTURE_2D)
     }
@@ -80,7 +85,7 @@ export default class GearEntity extends Entity {
     GHImage.onload = () => {
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, this.GHTexture)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 512, 512, 0, gl.RGB, gl.UNSIGNED_BYTE, GHImage)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, GHImage)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       gl.generateMipmap(gl.TEXTURE_2D)
     }
@@ -104,11 +109,12 @@ export default class GearEntity extends Entity {
     this.modelMatrix = mat
   }
 
-  public draw(): void {
+  public draw(camera: Camera): void {
     const gl = this.gl
     gl.useProgram(this.program)
 
-    gl.uniformMatrix4fv(this.uModelMatrixLoc, false, this.modelMatrix)
+    gl.uniformMatrix4fv(this.uModelMatLoc, false, this.modelMatrix)
+    camera.toUniform(this.uViewMatLoc, this.uProjMatLoc)
     gl.uniform1i(this.uTextureLoc, 1)
     gl.uniform1i(this.uUVTextureLoc, 2)
 
@@ -117,10 +123,11 @@ export default class GearEntity extends Entity {
     gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, this.UVTexture)
 
-    gl.bindVertexArray(this.vao)
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
+    gl.vertexAttribPointer(this.aVertexPosLoc, 2, gl.FLOAT, false, 0, 0)
+    gl.enableVertexAttribArray(this.aVertexPosLoc)
+    gl.bindBuffer(gl.ARRAY_BUFFER, null)
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
-
-    gl.bindVertexArray(null)
   }
 }

@@ -1,16 +1,12 @@
-#version 300 es
-
 precision highp float;
 
-layout (location = 0) in vec2 aVertexPos;
+attribute vec2 aVertexPos;
 
-layout (std140) uniform uboCamera {
-  highp mat4 uViewMatrix;
-  highp mat4 uProjectionMatrix;
-};
+uniform mat4 uViewMatrix;
+uniform mat4 uProjectionMatrix;
 uniform mat4 uModelMatrix;
 
-out vec2 vTexCoord;
+varying vec2 vTexCoord;
 
 void main() {
   vTexCoord = aVertexPos * 0.5 + vec2(0.5);
