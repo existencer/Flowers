@@ -15,6 +15,6 @@ void main() {
   mat4 rotateMatrix = mat4(mat3(uModelMatrix));
   vec3 normal = normalize((rotateMatrix * UVinfo).xyz);
   float power = max(dot(normal, lightDir), 0.0);
-  gl_FragColor = vec4(vec3(0.4) + vec3(0.6, 0.8, 1.0) * power * 0.4, alpha);
-  // gl_FragColor = vec4(vec3(0.75) + vec3(0.8, 0.9, 1.0) * power * 0.2, alpha);
+  // gl_FragColor = vec4(vec3(0.4) + vec3(0.6, 0.8, 1.0) * power * 0.4, alpha);
+  gl_FragColor = vec4(vec3(0.75) + vec3(0.8, 0.9, 1.0) * power * 0.2, alpha);
 }

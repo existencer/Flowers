@@ -49,7 +49,8 @@ export default class Gear extends Vue {
       gl.canvas.width = gl.canvas.clientWidth
       gl.canvas.height = gl.canvas.clientHeight
       gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight)
-      gl.clearColor(0.05, 0.1, 0.1, 1.0)
+      // gl.clearColor(0.05, 0.1, 0.1, 1.0)
+      gl.clearColor(1.0, 1.0, 1.0, 1.0)
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       const viewMat4 = mat4.create()
