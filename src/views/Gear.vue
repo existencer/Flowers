@@ -35,16 +35,16 @@ export default class Gear extends Vue {
     const gl = canvas.getContext('webgl', { alpha: false }) as WebGLRenderingContext
     this.gl = gl
 
-    const gear1 = new GearEntity(gl, [-30, 200, 0], 200)
+    const gear1 = new GearEntity(gl, 6, [-30, 200, 0], 200)
     gear1.setRotateSpeed(10)
-    gear1.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
-    gear1.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
+    gear1.setGHTexture(require('@/assets/gear/gear_0_d6.gh.jpg'))
+    gear1.setUVTexture(require('@/assets/gear/gear_0_d6.uv.jpg'))
 
-    const gear2 = new GearEntity(gl, [168, -108, 0], 200)
+    const gear2 = new GearEntity(gl, 6, [168, -108, 0], 200)
     gear2.setRotateSpeed(-10)
     gear2.setRotateOffset(2.5)
-    gear2.setGHTexture(require('@/assets/gear/gear_0.gh.jpg'))
-    gear2.setUVTexture(require('@/assets/gear/gear_0.uv.jpg'))
+    gear2.setGHTexture(require('@/assets/gear/gear_0_d6.gh.jpg'))
+    gear2.setUVTexture(require('@/assets/gear/gear_0_d6.uv.jpg'))
 
     const camera = new Camera(gl)
 

@@ -1,19 +1,16 @@
 import gearVsSource from '@/glsl/object/gear/gear.vs'
 import gearFsSource from '@/glsl/object/gear/gear.fs'
-import { vec3, mat4 } from 'gl-matrix'
+import { vec3, mat4, mat2 } from 'gl-matrix'
 import Entity from '@/lib/common/entity'
 import Camera from '@/lib/common/camera'
 
 const degree = Math.PI / 180
-const squareVertex = [
-  1.0, 1.0,
-  -1.0, 1.0,
-  -1.0, -1.0,
-  1.0, -1.0
-]
 
 export default class GearEntity extends Entity {
+  private symmetry: number
+
   private vertexBuffer: WebGLBuffer | null
+  private rotateZBuffer: WebGLBuffer | null
   private UVTexture: WebGLTexture | null
   private GHTexture: WebGLTexture | null
   private uModelMatLoc: WebGLUniformLocation | null
@@ -24,6 +21,7 @@ export default class GearEntity extends Entity {
   private uUVTextureLoc: WebGLUniformLocation | null
 
   private aVertexPosLoc: number
+  private aRotateZLoc: number
 
   private radius = 100
   private position = vec3.create()
@@ -32,8 +30,11 @@ export default class GearEntity extends Entity {
   private rotateOffset = 0
   private modelMatrix = mat4.create()
 
-  constructor(gl: WebGLRenderingContext, position?: [number, number, number], radius?: number) {
+  constructor(gl: WebGLRenderingContext, symmetry?: number, position?: [number, number, number], radius?: number) {
     super(gl, gearVsSource, gearFsSource)
+
+    symmetry = symmetry || 4
+    this.symmetry = symmetry
 
     if (position) {
       this.position = vec3.fromValues(position[0], position[1], position[2])
@@ -43,6 +44,7 @@ export default class GearEntity extends Entity {
     }
 
     this.aVertexPosLoc = gl.getAttribLocation(this.program, 'aVertexPos')
+    this.aRotateZLoc = gl.getAttribLocation(this.program, 'aRotateZ')
 
     this.uModelMatLoc = gl.getUniformLocation(this.program, 'uModelMatrix')
     this.uViewMatLoc = gl.getUniformLocation(this.program, 'uViewMatrix')
@@ -53,9 +55,28 @@ export default class GearEntity extends Entity {
     this.uTextureLoc = gl.getUniformLocation(this.program, 'uTexture')
     this.uUVTextureLoc = gl.getUniformLocation(this.program, 'uUVTexture')
 
+    const arg = Math.PI / symmetry
+    const r = 1 / Math.cos(arg)
+    const vertexPos = [
+      0.0, 0.0,
+      r * Math.sin(arg), 1.0,
+      r * -Math.sin(arg), 1.0
+    ]
+    const rotateZ: number[] = []
+    for (let i = 0; i < this.symmetry; i++) {
+      const mat = mat2.create()
+      mat2.rotate(mat, mat, 2 * arg * i)
+      rotateZ.push(...mat)
+    }
+
     this.vertexBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(squareVertex), gl.STREAM_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPos), gl.STREAM_DRAW)
+    gl.bindBuffer(gl.ARRAY_BUFFER, null)
+
+    this.rotateZBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.rotateZBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rotateZ), gl.STREAM_DRAW)
     gl.bindBuffer(gl.ARRAY_BUFFER, null)
 
     this.UVTexture = gl.createTexture()
@@ -115,6 +136,7 @@ export default class GearEntity extends Entity {
 
   public draw(camera: Camera, lightOn?: boolean): void {
     const gl = this.gl
+    const ext = gl.getExtension('ANGLE_instanced_arrays') as ANGLE_instanced_arrays
     gl.useProgram(this.program)
 
     gl.uniformMatrix4fv(this.uModelMatLoc, false, this.modelMatrix)
@@ -131,8 +153,17 @@ export default class GearEntity extends Entity {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
     gl.vertexAttribPointer(this.aVertexPosLoc, 2, gl.FLOAT, false, 0, 0)
     gl.enableVertexAttribArray(this.aVertexPosLoc)
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.rotateZBuffer)
+    gl.vertexAttribPointer(this.aRotateZLoc, 2, gl.FLOAT, false, 16, 0)
+    gl.enableVertexAttribArray(this.aRotateZLoc)
+    gl.vertexAttribPointer(this.aRotateZLoc + 1, 2, gl.FLOAT, false, 16, 8)
+    gl.enableVertexAttribArray(this.aRotateZLoc + 1)
+    ext.vertexAttribDivisorANGLE(this.aRotateZLoc, 1)
+    ext.vertexAttribDivisorANGLE(this.aRotateZLoc + 1, 1)
     gl.bindBuffer(gl.ARRAY_BUFFER, null)
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+    // gl.drawArrays(gl.TRIANGLES, 0, this.symmetry * 3)
+    ext.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 3, this.symmetry)
   }
 }
