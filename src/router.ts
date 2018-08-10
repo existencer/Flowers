@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Stage from './views/Stage.vue'
 import Gear from './views/Gear.vue'
+import Points from './views/Points.vue'
 
 Vue.use(Router)
 
@@ -22,6 +23,11 @@ export default new Router({
       path: '/gear',
       name: 'gear',
       component: Gear
+    },
+    {
+      path: '/points',
+      name: 'points',
+      component: Points
     }
   ]
 })
