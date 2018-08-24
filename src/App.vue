@@ -4,7 +4,8 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/stage">Stage</router-link> |
       <router-link to="/gear">Gear</router-link> |
-      <router-link to="/points">Points</router-link>
+      <router-link to="/points">Points</router-link> |
+      <router-link to="/camera">Camera</router-link>
     </div>
     <router-view/>
   </div>

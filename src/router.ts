@@ -4,6 +4,7 @@ import Home from './views/Home.vue'
 import Stage from './views/Stage.vue'
 import Gear from './views/Gear.vue'
 import Points from './views/Points.vue'
+import Camera from './views/Camera.vue'
 
 Vue.use(Router)
 
@@ -28,6 +29,11 @@ export default new Router({
       path: '/points',
       name: 'points',
       component: Points
+    },
+    {
+      path: '/camera',
+      name: 'camera',
+      component: Camera
     }
   ]
 })
