@@ -2,9 +2,9 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
-      <router-link to="/stage">Stage</router-link> |
+      <router-link to="/stage">Grass</router-link> |
       <router-link to="/gear">Gear</router-link> |
-      <router-link to="/points">Points</router-link> |
+      <router-link to="/points">Null</router-link> |
       <router-link to="/camera">Camera</router-link>
     </div>
     <router-view/>
