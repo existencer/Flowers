@@ -3,11 +3,11 @@ import Camera from '@/lib/common/camera'
 
 export default abstract class Entity {
   protected gl: WebGLRenderingContext
-  protected program: WebGLProgram | null
+  protected program: WebGLProgram
 
   constructor(gl: WebGLRenderingContext, vs: string, fs: string) {
     this.gl = gl
-    this.program = initShaderProgram(gl, vs, fs)
+    this.program = initShaderProgram(gl, vs, fs)!
   }
 
   public abstract draw(camera?: Camera): void
