@@ -35,7 +35,7 @@ import centerFsSource from '@/glsl/center.fs'
 import centerLineFsSource from '@/glsl/center.line.fs'
 import Island from '@/lib/webgl2/island'
 
-const grassCount = 5000000
+const grassCount = 5000
 const grassDensity = 400
 const grassSlope = 1 / 40
 const grassPrecision = 2

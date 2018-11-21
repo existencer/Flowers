@@ -17,7 +17,7 @@ export default class Island {
   public texturePos: number
 
   private gl: WebGL2RenderingContext
-  private program: WebGLProgram | null
+  private program: WebGLProgram
   private vao: WebGLVertexArrayObject | null
   private depthTexture: WebGLTexture | null
   private uPrecisionLoc: WebGLUniformLocation | null
@@ -27,7 +27,7 @@ export default class Island {
     this.gl = gl
     this.texturePos = texturePos
 
-    this.program = initShaderProgram(gl, islandVsSource, islandFsSource)
+    this.program = initShaderProgram(gl, islandVsSource, islandFsSource)!
     this.uPrecisionLoc = gl.getUniformLocation(this.program, 'uPrecision')
     this.uDepthTextureLoc = gl.getUniformLocation(this.program, 'uDepthTexture')
 
